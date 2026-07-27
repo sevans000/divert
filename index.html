@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Divert">
+<meta name="theme-color" content="#0A0E14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Divert</title>
+<style>
+  :root{
+    --bg:#0A0E14; --panel:#141B26; --border:#26303F; --inputBg:#0E141D;
+    --label:#7A8A9A; --text:#E6EDF3; --data:#5FD3E3; --hero:#F5B841;
+    --good:#4ADE80; --warn:#F87171; --dim:#33404F;
+  }
+  body.night{
+    --bg:#0A0505; --panel:#170B0B; --border:#3A1616; --inputBg:#1E0D0D;
+    --label:#A85B5B; --text:#FF6B5C; --data:#FF5A47; --hero:#FF9166;
+    --good:#FF8A66; --warn:#FFCDBE; --dim:#5A2222;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg);}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh; color:var(--text);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;}
+  .wrap{max-width:480px; margin:0 auto; padding:20px 16px 40px;}
+
+  /* header */
+  .hdr{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+  .brand{display:flex; align-items:center; gap:8px;}
+  .brand .t1{font-size:18px; font-weight:700; letter-spacing:-.01em;}
+  .brand .t2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
+  .icons{display:flex; gap:8px;}
+  .ibtn{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .ibtn svg{display:block;}
+
+  /* inputs */
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .fld{display:flex; flex-direction:column;}
+  .fld label{font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--label); margin-bottom:5px;}
+  .inbox{position:relative;}
+  .inbox input{
+    width:100%; border-radius:10px; padding:12px; font-size:24px; outline:none;
+    background:var(--inputBg); border:1px solid var(--border); color:var(--data);
+    font-family:ui-monospace,"SF Mono",Menlo,monospace; caret-color:var(--hero);
+  }
+  .inbox .unit{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:500; color:var(--dim); pointer-events:none;}
+  .sub{font-size:11px; margin-top:5px; color:var(--dim);}
+  .hidden{display:none !important;}
+
+  /* options */
+  .optbtn{margin-top:12px; width:100%; display:flex; align-items:center; justify-content:space-between; border-radius:10px; padding:9px 12px; background:var(--panel); border:1px solid var(--border); cursor:pointer; color:var(--label);}
+  .optbtn span{font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase;}
+  .optpanel{margin-top:8px; border-radius:10px; padding:12px; background:var(--panel); border:1px solid var(--border); display:flex; flex-direction:column; gap:12px;}
+  .row{display:flex; align-items:center; justify-content:space-between;}
+  .row .lbl{font-size:14px; color:var(--text);}
+  .divider{height:1px; background:var(--border);}
+  input[type=checkbox]{width:20px; height:20px; accent-color:var(--hero);}
+  .varrow{display:flex; align-items:center; gap:8px;}
+  .varrow .cap{font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--label);}
+  .varrow input{width:64px; border-radius:8px; padding:6px 8px; font-size:16px; outline:none; background:var(--inputBg); border:1px solid var(--border); color:var(--data); font-family:ui-monospace,monospace;}
+  .seg{display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+  .seg button{padding:6px 14px; font-size:14px; border:none; background:var(--inputBg); color:var(--label); cursor:pointer;}
+  .seg button.on{background:var(--hero); color:var(--bg);}
+
+  /* hero */
+  .hero{margin-top:20px; border-radius:16px; padding:20px; background:var(--panel); border:1px solid var(--border);}
+  .hero .cap{font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--label); margin-bottom:4px;}
+  .hero .big{color:var(--hero); font-size:64px; line-height:1; font-weight:700; letter-spacing:-.02em;}
+  .hero .deg{color:var(--hero); font-size:32px; font-weight:300;}
+  .hero .placeholder{color:var(--dim); font-size:64px; line-height:1; font-weight:700;}
+  .hero .meta{margin-top:6px; font-size:14px; color:var(--label);}
+
+  /* warning */
+  .warn{margin-top:12px; border-radius:10px; padding:12px 16px; font-size:14px;}
+
+  /* tiles */
+  .tiles{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+  .tile{border-radius:10px; padding:12px; background:var(--inputBg); border:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between;}
+  .tile .cap{font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--label);}
+  .tile .val{display:flex; align-items:baseline; gap:4px; margin-top:6px;}
+  .tile .num{font-size:32px; line-height:1; font-weight:600; color:var(--data);}
+  .tile .u{font-size:11px; font-weight:500; color:var(--dim);}
+
+  .windline{margin-top:12px; text-align:center; font-size:14px; letter-spacing:.15em; color:var(--label);}
+  /* stopwatch */
+  .sw{margin-top:12px; border-radius:16px; padding:18px 20px; background:var(--panel); border:1px solid var(--border);}
+  .sw .cap{font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--label);}
+  .sw-times{display:flex; gap:16px; margin-top:6px;}
+  .sw-col{flex:1; min-width:0;}
+  .swtime{font-size:46px; line-height:1; font-weight:700; letter-spacing:.01em; color:var(--data); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .swtime.run{color:var(--good);}
+  .swbtns{display:flex; gap:10px; margin-top:16px;}
+  .swbtn{flex:1; padding:14px; border-radius:10px; border:1px solid var(--border); font-size:15px; font-weight:600; cursor:pointer; background:var(--inputBg); color:var(--text); -webkit-user-select:none; user-select:none;}
+  .swbtn.start{background:var(--good); color:var(--bg); border-color:transparent;}
+  .swbtn.stop{background:var(--warn); color:var(--bg); border-color:transparent;}
+  .swbtn.reset{color:var(--label);}
+  .eta-row{display:flex; gap:10px; margin-top:14px;}
+  .eta{flex:1; border-radius:10px; padding:10px 12px; background:var(--inputBg); border:1px solid var(--border);}
+  .eta .cap{font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--label);}
+  .eta .val{margin-top:3px; font-size:22px; line-height:1; font-weight:700; color:var(--data);}
+  .foot{margin-top:24px; text-align:center; font-size:11px; line-height:1.6; color:var(--dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--hero)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+      <div>
+        <div class="t1">DIVERT</div>
+        <div class="t2">wind · heading · fuel</div>
+      </div>
+    </div>
+    <div class="icons">
+      <div class="ibtn" id="resetBtn" aria-label="Clear">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--label)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </div>
+      <div class="ibtn" id="nightBtn" aria-label="Night mode">
+        <svg id="nightIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--label)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="fld"><label>Course</label><div class="inbox"><input id="course" inputmode="decimal" type="text" placeholder="—"><span class="unit">°M</span></div></div>
+    <div class="fld"><label>Distance</label><div class="inbox"><input id="dist" inputmode="decimal" type="text" placeholder="—"><span class="unit">nm</span></div></div>
+    <div class="fld"><label id="asLabel">Airspeed (TAS)</label><div class="inbox"><input id="airspeed" inputmode="decimal" type="text" placeholder="—"><span class="unit">kt</span></div><span class="sub hidden" id="tasHint"></span></div>
+    <div class="fld hidden" id="altFld"><label>Altitude</label><div class="inbox"><input id="alt" inputmode="decimal" type="text" placeholder="—"><span class="unit">ft</span></div></div>
+    <div class="fld" id="windDirFld"><label>Wind from</label><div class="inbox"><input id="windDir" inputmode="decimal" type="text" placeholder="—"><span class="unit">°</span></div></div>
+    <div class="fld"><label>Wind speed</label><div class="inbox"><input id="windSpd" inputmode="decimal" type="text" placeholder="—"><span class="unit">kt</span></div></div>
+    <div class="fld"><label>Fuel burn</label><div class="inbox"><input id="gph" inputmode="decimal" type="text" placeholder="—"><span class="unit">gph</span></div></div>
+    <div class="fld"><label>Fuel on board</label><div class="inbox"><input id="fob" inputmode="decimal" type="text" placeholder="—"><span class="unit">gal</span></div></div>
+  </div>
+
+  <div class="optbtn" id="optBtn"><span>Adjustments</span>
+    <svg id="optChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--label)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="optpanel hidden" id="optPanel">
+    <div class="row"><span class="lbl">Airspeed entered as IAS</span><input type="checkbox" id="iasChk"></div>
+    <div class="divider"></div>
+    <div class="row"><span class="lbl">Winds are TRUE (FD forecast)</span><input type="checkbox" id="trueChk"></div>
+    <div class="varrow hidden" id="varRow">
+      <span class="cap">Variation</span>
+      <input id="varMag" inputmode="decimal" type="text" value="6">
+      <div class="seg"><button id="varE" class="on">E</button><button id="varW">W</button></div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="cap">Fly heading</div>
+    <div id="hdgReady" class="hidden">
+      <span class="big mono" id="hdgVal">360</span><span class="deg">°</span>
+      <div class="meta mono" id="hdgMeta"></div>
+    </div>
+    <div id="hdgEmpty"><span class="placeholder mono">––––</span></div>
+  </div>
+
+  <div class="warn hidden" id="warnBox"></div>
+
+  <div class="tiles">
+    <div class="tile"><span class="cap">Ground speed</span><div class="val"><span class="num mono" id="gsVal">—</span><span class="u">kt</span></div></div>
+    <div class="tile"><span class="cap">Time</span><div class="val"><span class="num mono" id="timeVal">—</span><span class="u" id="timeUnit">min</span></div></div>
+    <div class="tile"><span class="cap">Fuel to divert</span><div class="val"><span class="num mono" id="fuelVal">—</span><span class="u">gal</span></div></div>
+    <div class="tile"><span class="cap">Fuel remaining</span><div class="val"><span class="num mono" id="remVal">—</span><span class="u">gal</span></div></div>
+  </div>
+
+  <div class="windline mono hidden" id="windLine"></div>
+
+  <div class="sw">
+    <div class="sw-times">
+      <div class="sw-col">
+        <div class="cap">Elapsed</div>
+        <div class="swtime mono" id="swTime">00:00</div>
+      </div>
+      <div class="sw-col">
+        <div class="cap" id="runCap">To run</div>
+        <div class="swtime mono" id="swRun">—</div>
+      </div>
+    </div>
+    <div class="eta-row">
+      <div class="eta"><div class="cap">ETA · Local</div><div class="val mono" id="etaLocal">—</div></div>
+      <div class="eta"><div class="cap">ETA · Zulu</div><div class="val mono" id="etaZulu">—</div></div>
+    </div>
+    <div class="swbtns">
+      <button class="swbtn start" id="swToggle">Start</button>
+      <button class="swbtn reset" id="swReset">Reset</button>
+    </div>
+  </div>
+
+  <div class="foot">Planning aid. Cross-check against your E6B or EFB —<br>not a primary navigation source.</div>
+</div>
+
+<script>
+(function(){
+  var varHemi = "E";
+  var iasMode = false, trueWind = false;
+  var swRunning = false, swStart = 0, swAcc = 0, swTimer = null, lastEteMin = null;
+  var swStartWall = null;
+
+  function $(id){ return document.getElementById(id); }
+  function num(v){ var n = parseFloat(v); return isFinite(n) ? n : null; }
+  function fmtHdg(h){ var r = Math.round(h); r = ((r%360)+360)%360; if(r===0) r=360; return String(r).padStart(3,"0"); }
+  function one(x){ return x==null ? "—" : (Math.round(x*10)/10).toString(); }
+  function whole(x){ return x==null ? "—" : Math.round(x).toString(); }
+
+  function compute(){
+    var co = num($("course").value);
+    var di = num($("dist").value);
+    var tas = num($("airspeed").value);
+    var wsp = num($("windSpd").value);
+    var g = num($("gph").value);
+    var f = num($("fob").value);
+    var a = num($("alt").value);
+    var vv = num($("varMag").value);
+    var wdi = num($("windDir").value);
+
+    // IAS -> TAS
+    var tasEst = null;
+    if(iasMode && tas!=null && a!=null){ tas = tas*(1+0.02*(a/1000)); tasEst = tas; }
+    if(iasMode && tasEst!=null){ $("tasHint").textContent = "≈ "+whole(tasEst)+" kt TAS"; $("tasHint").classList.remove("hidden"); }
+    else { $("tasHint").classList.add("hidden"); }
+
+    // true wind -> magnetic
+    if(wdi!=null && trueWind && vv!=null){
+      var eastPos = varHemi==="E" ? vv : -vv;
+      wdi = (((wdi-eastPos)%360)+360)%360;
+    }
+
+    var core = co!=null && di!=null && tas!=null && tas>0 && wdi!=null && wsp!=null;
+
+    var hero = $("hdgReady"), empty = $("hdgEmpty"), warnBox = $("warnBox");
+    var windLine = $("windLine");
+
+    function clearOut(){
+      $("gsVal").textContent="—"; $("timeVal").textContent="—"; $("timeUnit").textContent="min";
+      $("fuelVal").textContent="—"; $("remVal").textContent="—"; $("remVal").style.color="var(--data)";
+    }
+
+    if(!core){
+      hero.classList.add("hidden"); empty.classList.remove("hidden");
+      warnBox.classList.add("hidden"); windLine.classList.add("hidden");
+      clearOut(); lastEteMin = null; swRender(); return;
+    }
+
+    var beta = wdi - co;
+    var bRad = beta*Math.PI/180;
+    var sinX = wsp*Math.sin(bRad)/tas;
+    var impossible=false, reason="", wcaRad=0;
+    if(Math.abs(sinX)>1){ impossible=true; reason="Crosswind exceeds airspeed — this course can't be held."; }
+    else { wcaRad = Math.asin(sinX); }
+    var gs = tas*Math.cos(wcaRad) - wsp*Math.cos(bRad);
+    if(!impossible && gs<=0){ impossible=true; reason="Headwind exceeds airspeed — no forward progress on this course."; }
+
+    var wcaDeg = wcaRad*180/Math.PI;
+    var hdg = co + wcaDeg;
+    var headwind = wsp*Math.cos(bRad);
+    var crosswind = wsp*Math.sin(bRad);
+
+    // wind components line
+    var side = crosswind>=0 ? "R" : "L";
+    var hwlabel = headwind>=0 ? "HW" : "TW";
+    windLine.textContent = hwlabel+" "+whole(Math.abs(headwind))+"  ·  XW "+whole(Math.abs(crosswind))+" "+side;
+    windLine.classList.remove("hidden");
+
+    if(impossible){
+      hero.classList.add("hidden"); empty.classList.remove("hidden");
+      warnBox.textContent = reason;
+      warnBox.style.background="var(--inputBg)"; warnBox.style.border="1px solid var(--warn)"; warnBox.style.color="var(--warn)";
+      warnBox.classList.remove("hidden");
+      clearOut();
+      lastEteMin = null; swRender(); return;
+    }
+
+    warnBox.classList.add("hidden");
+    empty.classList.add("hidden"); hero.classList.remove("hidden");
+    $("hdgVal").textContent = fmtHdg(hdg);
+    var dir = wcaDeg>=0 ? "right" : "left";
+    var sign = wcaDeg>=0 ? "+" : "−";
+    $("hdgMeta").textContent = "WCA "+sign+Math.abs(Math.round(wcaDeg))+"° "+dir+" · course "+fmtHdg(co)+"°";
+
+    var timeMin = di/gs*60;
+    var fuel = g!=null ? timeMin/60*g : null;
+    var remaining = (fuel!=null && f!=null) ? f-fuel : null;
+
+    $("gsVal").textContent = whole(gs);
+    $("timeVal").textContent = whole(timeMin);
+    if(timeMin>=60){ $("timeUnit").textContent = "min ("+Math.floor(timeMin/60)+":"+String(Math.round(timeMin%60)).padStart(2,"0")+")"; }
+    else { $("timeUnit").textContent = "min"; }
+    $("fuelVal").textContent = one(fuel);
+    $("remVal").textContent = one(remaining);
+    if(remaining!=null){
+      $("remVal").style.color = remaining<0 ? "var(--warn)" : (remaining<5 ? "var(--hero)" : "var(--good)");
+    } else { $("remVal").style.color = "var(--data)"; }
+
+    lastEteMin = timeMin;
+    swRender();
+  }
+
+  // listeners
+  ["course","dist","airspeed","windDir","windSpd","gph","fob","alt","varMag"].forEach(function(id){
+    $(id).addEventListener("input", compute);
+  });
+
+  $("resetBtn").addEventListener("click", function(){
+    ["course","dist","airspeed","windDir","windSpd","gph","fob","alt"].forEach(function(id){ $(id).value=""; });
+    compute();
+  });
+
+  $("nightBtn").addEventListener("click", function(){
+    document.body.classList.toggle("night");
+    var on = document.body.classList.contains("night");
+    var el = $("nightIcon");
+    if(on){ // sun
+      el.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+      el.setAttribute("stroke","var(--hero)");
+    } else { // moon
+      el.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>';
+      el.setAttribute("stroke","var(--label)");
+    }
+    document.querySelector('meta[name=theme-color]').setAttribute("content", on ? "#0A0505" : "#0A0E14");
+  });
+
+  $("optBtn").addEventListener("click", function(){
+    var p = $("optPanel"); var hidden = p.classList.toggle("hidden");
+    $("optChevron").innerHTML = hidden ? '<path d="m6 9 6 6 6-6"/>' : '<path d="m18 15-6-6-6 6"/>';
+  });
+
+  $("iasChk").addEventListener("change", function(e){
+    iasMode = e.target.checked;
+    $("altFld").classList.toggle("hidden", !iasMode);
+    $("asLabel").textContent = iasMode ? "Airspeed (IAS)" : "Airspeed (TAS)";
+    // reorder: keep wind dir field visible; alt sits where it is in DOM (after airspeed)
+    compute();
+  });
+
+  $("trueChk").addEventListener("change", function(e){
+    trueWind = e.target.checked;
+    $("varRow").classList.toggle("hidden", !trueWind);
+    compute();
+  });
+
+  $("varE").addEventListener("click", function(){ varHemi="E"; $("varE").classList.add("on"); $("varW").classList.remove("on"); compute(); });
+  $("varW").addEventListener("click", function(){ varHemi="W"; $("varW").classList.add("on"); $("varE").classList.remove("on"); compute(); });
+
+  // --- stopwatch ---
+  function fmtClock(totalSec){
+    totalSec = Math.max(0, Math.floor(totalSec));
+    var h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+    var p = function(n){ return String(n).padStart(2,"0"); };
+    return h>0 ? (h+":"+p(m)+":"+p(s)) : (p(m)+":"+p(s));
+  }
+  function swElapsedMs(){ return swAcc + (swRunning ? (Date.now()-swStart) : 0); }
+  function swRender(){
+    var sec = swElapsedMs()/1000;
+    $("swTime").textContent = fmtClock(sec);
+    var runEl = $("swRun"), capEl = $("runCap");
+    if(lastEteMin!=null){
+      var eteSec = Math.round(lastEteMin*60);
+      var rem = eteSec - Math.floor(sec);
+      if(rem>=0){
+        runEl.textContent = fmtClock(rem);
+        capEl.textContent = "To run";
+        runEl.style.color = rem<=60 ? "var(--hero)" : "var(--data)";
+      } else {
+        runEl.textContent = fmtClock(-rem);
+        capEl.textContent = "Over";
+        runEl.style.color = "var(--warn)";
+      }
+    } else {
+      runEl.textContent = "—";
+      capEl.textContent = "To run";
+      runEl.style.color = "var(--dim)";
+    }
+    // ETA = divert start instant + estimated time enroute
+    if(swStartWall!=null && lastEteMin!=null){
+      var ms = Math.round((swStartWall + lastEteMin*60000)/60000)*60000;
+      var eta = new Date(ms);
+      $("etaLocal").textContent = eta.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      $("etaZulu").textContent = String(eta.getUTCHours()).padStart(2,"0") + String(eta.getUTCMinutes()).padStart(2,"0") + "Z";
+    } else {
+      $("etaLocal").textContent = "—";
+      $("etaZulu").textContent = "—";
+    }
+  }
+  $("swToggle").addEventListener("click", function(){
+    var btn = $("swToggle");
+    if(!swRunning){
+      swRunning = true; swStart = Date.now();
+      if(swStartWall===null){ swStartWall = swStart; }
+      swTimer = setInterval(swRender, 200);
+      btn.textContent = "Stop"; btn.classList.remove("start"); btn.classList.add("stop");
+      $("swTime").classList.add("run");
+    } else {
+      swAcc += Date.now() - swStart; swRunning = false;
+      clearInterval(swTimer); swTimer = null;
+      btn.textContent = "Start"; btn.classList.remove("stop"); btn.classList.add("start");
+      $("swTime").classList.remove("run");
+      swRender();
+    }
+  });
+  $("swReset").addEventListener("click", function(){
+    swRunning = false; swAcc = 0; swStartWall = null;
+    if(swTimer){ clearInterval(swTimer); swTimer = null; }
+    var btn = $("swToggle");
+    btn.textContent = "Start"; btn.classList.remove("stop"); btn.classList.add("start");
+    $("swTime").classList.remove("run");
+    swRender();
+  });
+
+  compute();
+  swRender();
+
+  // register service worker for offline use (works once hosted over https)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
